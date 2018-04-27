@@ -3,14 +3,14 @@
     "description": "usercenter",
     "type": "library",
     "require": {
-        "php": "7.1.14",
+        "php": ">=5.5.0",
         "guzzlehttp/guzzle": "^6.3",
         "lcobucci/jwt": "^3.2"
     },
     "require-dev": {
-        "php": "7.1.14",
-        "guzzlehttp/guzzle": "6.3",
-        "lcobucci/jwt": "3.2"
+        "php": ">=5.5.0",
+        "guzzlehttp/guzzle": "^6.3",
+        "lcobucci/jwt": "^3.2"
     },
     "license": "MIT",
     "authors": [
