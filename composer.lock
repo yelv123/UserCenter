@@ -344,9 +344,9 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "7.1.14"
+        "php": ">=5.5.0"
     },
     "platform-dev": {
-        "php": "7.1.14"
+        "php": ">=5.5.0"
     }
 }
