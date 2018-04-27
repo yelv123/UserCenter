@@ -1,0 +1,28 @@
+{
+    "name": "yelv123/usercenter",
+    "description": "usercenter",
+    "type": "library",
+    "require": {
+        "php": "7.1.14",
+        "guzzlehttp/guzzle": "^6.3",
+        "lcobucci/jwt": "^3.2"
+    },
+    "require-dev": {
+        "php": "7.1.14",
+        "guzzlehttp/guzzle": "6.3",
+        "lcobucci/jwt": "3.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yelv123",
+            "email": "swustncgis@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "UserCenter\\": "src/"
+        }
+    }
+}
