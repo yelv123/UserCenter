@@ -15,15 +15,28 @@ use Lcobucci\JWT\Signer\Hmac\Sha256;
 
 class UserCenterClient
 {
+    const USAGE_LOGIN = 1;
+    const USAGE_RESET_PASSWORD = 2;
+    const USAGE_VERIFY_OLD_PHONE_NUMBER = 3;
+    const USAGE_BINDING_PHONE_NUMBER = 4;
+    const USAGE_REGISTER = 5;
+    const USAGE_CHANGE_PHONE_NUMBER = 6;
+
+    const CONFIG_KEY_UC_API_BASE_URL = "UC_API_BASE_URL";
+    const CONFIG_KEY_UC_APP_ID = "UC_APP_ID";
+    const CONFIG_KEY_UC_APP_SECRET = "UC_APP_SECRET";
+
     private static $CLAIM_USER_ID = 'userId';
     private static $CLAIM_PHONE_NUMBER = 'phoneNumber';
     private static $CLAIM_WE_CHAT_UNION_ID = 'weChatUnionId';
     private static $CLAIM_APP_ID = "appId";
 
-    private $config=[];
-    public function __construct($config=[])
+
+    private $config = [];
+
+    public function __construct($config = [])
     {
-        $this->config=$config;
+        $this->config = $config;
     }
 
     /**
@@ -48,11 +61,27 @@ class UserCenterClient
      * 成功：{"token":"访问令牌"}
      * 失败：{"code":错误代码,"message":"失败原因"}
      */
-    public  function getTokenByWeChatUnionId($weChatUnionId)
+    public function getTokenByWeChatUnionId($weChatUnionId)
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->post($this->config['UC_API_BASE_URL'] . '/users/weChatUnionIdIs/' . $weChatUnionId . '/authenticatedWithSignature/' . $signature . '/tokens', ['http_errors' => false]);
+        $response = $client->post($this->baseUrl() . '/users/weChatUnionIdIs/' . $weChatUnionId . '/authenticatedWithSignature/' . $signature . '/tokens', ['http_errors' => false]);
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
+     * 通过手机号码和密码登录
+     * @param $phoneNumber
+     * @param $password
+     * @return array
+     * 成功：{"token":"访问令牌"}
+     * 失败：{"code":错误代码,"message":"失败原因"}
+     */
+    public function loginByPhoneNumberAndPassword($phoneNumber, $password)
+    {
+        $signature = $this->buildSignature();
+        $client = new Client();
+        $response = $client->post($this->baseUrl() . '/users/phoneNumberIs/' . $phoneNumber . '/authenticatedWithPassword/' . $signature . '/tokens', array('json' => array('password' => $password), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -60,15 +89,16 @@ class UserCenterClient
      * 用户注册
      * @param string $phoneNumber 手机号码
      * @param string $weChatUnionId 微信联合ID
+     * @param string $password
      * @return array
      * 成功：{"user_id":"用户ID","phone_number":"手机号码","we_chat_union_id":"微信联合ID"}
      * 失败：{"code":错误代码,"message":"失败原因"}
      */
-    public  function registerUser($phoneNumber, $weChatUnionId = '')
+    public function registerUser($phoneNumber, $weChatUnionId = '', $password = '')
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->post($this->config['UC_API_BASE_URL'] . '/apps/authenticatedWithSignature/' . $signature . '/users', array('json' => array('phone_number' => $phoneNumber, 'we_chat_union_id' => $weChatUnionId), 'http_errors' => false));
+        $response = $client->post($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/users', array('json' => array('phone_number' => $phoneNumber, 'we_chat_union_id' => $weChatUnionId, 'password' => $password), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -76,15 +106,16 @@ class UserCenterClient
      * 注册或更新用户
      * @param string $phoneNumber 手机号码
      * @param string $weChatUnionId 微信联合ID
+     * @param string $password 密码
      * @return array
      * 成功：{"user_id":"用户ID","phone_number":"手机号码","we_chat_union_id":"微信联合ID"}
      * 失败：{"code":错误代码,"message":"失败原因"}
      */
-    public  function registerOrUpdateUser($phoneNumber, $weChatUnionId = '')
+    public function registerOrUpdateUser($phoneNumber, $weChatUnionId = '', $password = '')
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->put($this->config['UC_API_BASE_URL'] . '/apps/authenticatedWithSignature/' . $signature . '/users', array('json' => array('phone_number' => $phoneNumber, 'we_chat_union_id' => $weChatUnionId), 'http_errors' => false));
+        $response = $client->put($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/users', array('json' => array('phone_number' => $phoneNumber, 'we_chat_union_id' => $weChatUnionId, 'password' => $password), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -96,11 +127,11 @@ class UserCenterClient
      * 成功：{"check_code":"验证码"}
      * 失败：{"code":错误代码,"message":"失败原因"}
      */
-    public  function getCheckCodeByShortMessage($phoneNumber, $checkCodeUsage)
+    public function getCheckCodeByShortMessage($phoneNumber, $checkCodeUsage)
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->post($this->config['UC_API_BASE_URL'] . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/checkCodes', ['http_errors' => false]);
+        $response = $client->post($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/checkCodes', ['http_errors' => false]);
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -117,7 +148,7 @@ class UserCenterClient
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->get($this->config['UC_API_BASE_URL'] . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/isVerifyCheckCode/' . $checkCode, ['http_errors' => false]);
+        $response = $client->get($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/isVerifyCheckCode/' . $checkCode, ['http_errors' => false]);
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -131,10 +162,27 @@ class UserCenterClient
      * 成功：{"current_phone_number":"手机号码"}
      * 失败：{"code":错误代码,"message":"失败原因"}
      */
-    public  function changePhoneNumber($token, $checkCodeForOldPhoneNumber, $changedPhoneNumber, $checkCodeForChangedPhoneNumber)
+    public function changePhoneNumber($token, $checkCodeForOldPhoneNumber, $changedPhoneNumber, $checkCodeForChangedPhoneNumber)
     {
-        $client = $this-> Client();
-        $response = $client->put($this->config['UC_API_BASE_URL'] . '/users/authenticatedWithToken/' . $token . '/phoneNumber', array('json' => array('changed_phone_number' => $changedPhoneNumber, 'changed_check_code' => $checkCodeForChangedPhoneNumber, 'current_check_code' => $checkCodeForOldPhoneNumber), 'http_errors' => false));
+        $client = new Client();
+        $response = $client->put($this->baseUrl() . '/users/authenticatedWithToken/' . $token . '/phoneNumber', array('json' => array('changed_phone_number' => $changedPhoneNumber, 'changed_check_code' => $checkCodeForChangedPhoneNumber, 'current_check_code' => $checkCodeForOldPhoneNumber), 'http_errors' => false));
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+
+    /**
+     * 重置密码
+     * @param string $token 访问令牌
+     * @param string $newPassword 新密码
+     * @param string $checkCode 用于重置密码的验证码
+     * @return array
+     * 成功：{"password":"新密码"}
+     * 失败：{"code":错误代码,"message":"失败原因"}
+     */
+    public function resetPassword($token, $newPassword, $checkCode)
+    {
+        $client = new Client();
+        $response = $client->put($this->baseUrl() . '/users/authenticatedWithToken/' . $token . '/password', array('json' => array('new_password' => $newPassword, 'check_code' => $checkCode), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -143,26 +191,31 @@ class UserCenterClient
      * @param string $token
      * @return null|TokenPayload
      */
-    public  function getTokenPayload($token)
+    public function getTokenPayload($token)
     {
         $token = (new Parser())->parse(base64_decode($token));
         $userId = $token->getClaim(static::$CLAIM_USER_ID);
         $phoneNumber = $token->getClaim(static::$CLAIM_PHONE_NUMBER);
         $weChatUnionId = $token->getClaim(static::$CLAIM_WE_CHAT_UNION_ID);
 
-        if (!$token->verify(new Sha256(), $this->config['UC_APP_SECRET'])) {
+        if (!$token->verify(new Sha256(), $this->config[UserCenterClient::CONFIG_KEY_UC_APP_SECRET])) {
             return null;
         }
 
         return new TokenPayload($userId, $phoneNumber, $weChatUnionId);
     }
 
-    private  function buildSignature()
+    private function baseUrl()
+    {
+        return $this->config[UserCenterClient::CONFIG_KEY_UC_API_BASE_URL];
+    }
+
+    private function buildSignature()
     {
         $signature = (new Builder())
             ->setExpiration(time() + 3600)
-            ->set(static::$CLAIM_APP_ID, $this->config['UC_APP_ID'])
-            ->sign(new Sha256(),$this->config['UC_APP_SECRET'])
+            ->set(static::$CLAIM_APP_ID, $this->config[UserCenterClient::CONFIG_KEY_UC_APP_ID])
+            ->sign(new Sha256(), $this->config[UserCenterClient::CONFIG_KEY_UC_APP_SECRET])
             ->getToken();
         return base64_encode((string)$signature);
     }
