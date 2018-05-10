@@ -30,6 +30,7 @@ class UserCenterClient
     private static $CLAIM_PHONE_NUMBER = 'phoneNumber';
     private static $CLAIM_WE_CHAT_UNION_ID = 'weChatUnionId';
     private static $CLAIM_APP_ID = "appId";
+    private static $CLAIM_HAS_PASSWORD = "hasPassword";
 
 
     private $config = [];
@@ -197,12 +198,13 @@ class UserCenterClient
         $userId = $token->getClaim(static::$CLAIM_USER_ID);
         $phoneNumber = $token->getClaim(static::$CLAIM_PHONE_NUMBER);
         $weChatUnionId = $token->getClaim(static::$CLAIM_WE_CHAT_UNION_ID);
+        $hasPassword = $token->getClaim(static::$CLAIM_HAS_PASSWORD);
 
         if (!$token->verify(new Sha256(), $this->config[UserCenterClient::CONFIG_KEY_UC_APP_SECRET])) {
             return null;
         }
 
-        return new TokenPayload($userId, $phoneNumber, $weChatUnionId);
+        return new TokenPayload($userId, $phoneNumber, $weChatUnionId,$hasPassword);
     }
 
     private function baseUrl()
