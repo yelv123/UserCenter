@@ -21,9 +21,11 @@ class UserCenterClient
     const USAGE_BINDING_PHONE_NUMBER = 4;
     const USAGE_REGISTER = 5;
     const USAGE_CHANGE_PHONE_NUMBER = 6;
+
     const CONFIG_KEY_UC_API_BASE_URL = "UC_API_BASE_URL";
     const CONFIG_KEY_UC_APP_ID = "UC_APP_ID";
     const CONFIG_KEY_UC_APP_SECRET = "UC_APP_SECRET";
+
     private static $CLAIM_USER_ID = 'userId';
     private static $CLAIM_PHONE_NUMBER = 'phoneNumber';
     private static $CLAIM_WE_CHAT_UNION_ID = 'weChatUnionId';
@@ -51,7 +53,7 @@ class UserCenterClient
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->post($this->config['UC_API_BASE_URL'] . '/users/phoneNumberIs/' . $phoneNumber . '/countryCode/' . $countryCode . '/authenticatedWithSignature/' . $signature . '/tokens', ['http_errors' => false]);
+        $response = $client->post($this->config['UC_API_BASE_URL'] . '/users/phoneNumberIs/' . $phoneNumber . '/authenticatedWithSignature/' . $signature . '/tokens', array('json' => array('country_code' => $countryCode), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -83,7 +85,7 @@ class UserCenterClient
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->post($this->baseUrl() . '/users/phoneNumberIs/' . $phoneNumber . '/countryCode/' . $countryCode . '/authenticatedWithPassword/' . $signature . '/tokens', array('json' => array('password' => $password), 'http_errors' => false));
+        $response = $client->post($this->baseUrl() . '/users/phoneNumberIs/' . $phoneNumber . '/authenticatedWithPassword/' . $signature . '/tokens', array('json' => array('password' => $password, 'country_code' => $countryCode), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -136,7 +138,7 @@ class UserCenterClient
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->post($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/countryCode/' . $countryCode . '/withUsage/' . $checkCodeUsage . '/checkCodes', ['http_errors' => false]);
+        $response = $client->post($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/checkCodes', array('json' => array('country_code' => $countryCode), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -154,7 +156,7 @@ class UserCenterClient
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->get($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/countryCode/' . $countryCode . '/withUsage/' . $checkCodeUsage . '/isVerifyCheckCode/' . $checkCode, ['http_errors' => false]);
+        $response = $client->get($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/isVerifyCheckCode/' . $checkCode, array('json' => array('country_code' => $countryCode), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -166,7 +168,7 @@ class UserCenterClient
      * @param string $checkCodeForChangedPhoneNumber 用于验证新手机号码的验证码
      * @param string $changedCountryCode 国际区号
      * @return array
-     * 成功：{"phone_number":"手机号码"}
+     * 成功：{"current_phone_number":"手机号码","phone_number":"手机号码"}
      * 失败：{"code":错误代码,"message":"失败原因"}
      */
     public function changePhoneNumber($token, $checkCodeForOldPhoneNumber, $changedPhoneNumber, $checkCodeForChangedPhoneNumber, $changedCountryCode = '86')
@@ -175,7 +177,6 @@ class UserCenterClient
         $response = $client->put($this->baseUrl() . '/users/authenticatedWithToken/' . $token . '/phoneNumber', array('json' => array('changed_phone_number' => $changedPhoneNumber, 'changed_check_code' => $checkCodeForChangedPhoneNumber, 'current_check_code' => $checkCodeForOldPhoneNumber, 'changed_country_code' => $changedCountryCode), 'http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
-
 
     /**
      * 重置密码
