@@ -24,18 +24,25 @@ class TokenPayload
     private $hasPassword;
 
     /**
+     * @var string
+     */
+    private $countryCode;
+
+    /**
      * TokenPayload constructor.
      * @param string $userId
      * @param string $phoneNumber
      * @param string $weChatUnionId
      * @param bool $hasPassword
+     * @param string $countryCode
      */
-    public function __construct($userId, $phoneNumber, $weChatUnionId, $hasPassword)
+    public function __construct($userId, $phoneNumber, $weChatUnionId, $hasPassword, $countryCode)
     {
         $this->userId = $userId;
         $this->phoneNumber = $phoneNumber;
         $this->weChatUnionId = $weChatUnionId;
         $this->hasPassword = $hasPassword;
+        $this->countryCode = $countryCode;
     }
 
     /**
@@ -69,5 +76,14 @@ class TokenPayload
     {
         return $this->hasPassword;
     }
+
+    /**
+     * @return string
+     */
+    public function countryCode()
+    {
+        return $this->countryCode;
+    }
+
 
 }
