@@ -156,7 +156,7 @@ class UserCenterClient
     {
         $signature = $this->buildSignature();
         $client = new Client();
-        $response = $client->get($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/isVerifyCheckCode/' . $checkCode, array('json' => array('country_code' => $countryCode), 'http_errors' => false));
+        $response = $client->get($this->baseUrl() . '/apps/authenticatedWithSignature/' . $signature . '/phoneNumber/' . $phoneNumber . '/withUsage/' . $checkCodeUsage . '/isVerifyCheckCode/' . $checkCode . '?country_code=' . $countryCode, array('http_errors' => false));
         return json_decode($response->getBody()->getContents(), true);
     }
 
